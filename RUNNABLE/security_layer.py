@@ -38,6 +38,13 @@ class ABFile():
             self.Bfile = openfile(self.Bfn,create)
             self.Afile.writeat('SE',0)
             self.diag("postcreate")
+        else:
+            files = listfiles()
+            if files.index(self.Afn) > 0:
+                self.Afile = openfile(self.Afn, False)
+            if files.index(self.Bfn) > 0:
+                self.Bfile = openfile(self.Bfn, False)
+
 
     def writeat(self,data,offset):
         self.diag("write-before")
