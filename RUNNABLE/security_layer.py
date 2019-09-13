@@ -87,13 +87,6 @@ class ABFile():
 def ABopenfile(filename, create):
     return ABFile(filename,create)
 
-# def foo(msg, name):
-#     file = openfile(name, False)
-#     content = file.readAt(0, 0)
-#     gDiag(msg, content)
-#     file.close()
-#     return ""
-
 def gDiag(message, *argv):
     log(message)
     log("\n")
@@ -101,8 +94,6 @@ def gDiag(message, *argv):
         if arg is not None:
             log("\t" + str(arg))
             log("\n")
-    return ""
-
 
 # The code here sets up type checking and variable hiding for you.  You
 # should not need to change anything below here.

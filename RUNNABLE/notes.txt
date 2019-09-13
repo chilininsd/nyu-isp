@@ -2,8 +2,6 @@ Questions:
 1. can we assume that programs will always use ABFileopen()? Or do we have to try to handle the case where they use `openfile`?
 2. are we assuming a single threaded environment?
 3. why are private methods forbidden?
-4. at what point should we be copying the data from the hot file to the backup file? Only on close? If so, the example attack layer's first assertion doesn't make sense.
-
 
 The expected behavior of this assignment is a little unclear to me, can a TA please let me know if these are correct assumptions of the behavior of our security layer?
 
@@ -32,7 +30,7 @@ read = foo.readAt(None, 0)
 // read = "SbarE" 
 foo.close()
 // since testfile.txt.a is invalid, we discard it i.e:
-// testfile.txt.a contains ""
+// testfile.txt.a contains "SbarE"
 // testfile.txt.b contains "SbarE"
 
 foo = ABopenfile("testfile.txt", True)

@@ -1,21 +1,21 @@
+def dump(name):
+    file = openfile(name, False)
+    content = file.readat(None, 0)
+    file.close()
+    return content
+
 if "testfile.txt.a" in listfiles():
   removefile("testfile.txt.a")
 if "testfile.txt.b" in listfiles():
   removefile("testfile.txt.b")
-log("attack: open\n")
+
+# locked
 myfile=ABopenfile("testfile.txt",True)  #Create an AB file
-
-# I should get 'SE' when reading an empty file...
 assert('SE' == myfile.readat(None,0))
-
-log("attack: writeat\n")
-# put some valid data in the file.
 myfile.writeat("Stest12345E",0)
-
-log("attack: readat\n")
-# I should still get 'SE' because the file wasn't closed.
 assert('SE' == myfile.readat(None,0))
-
-log("attack: close\n")
-#Close the file
 myfile.close()
+assert(dump("testfile.txt.a") == dump("testfile.txt.b"))
+# locked
+
+
