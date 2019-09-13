@@ -70,7 +70,7 @@ class ABFile():
 
     def copyFileToFileIfValid(self, fileToCopyFrom, fileToCopyTo):
         if self.isValid(fileToCopyFrom):
-            fileContents = fileToCopyFrom.readat(0,0)
+            fileContents = fileToCopyFrom.readat(None,0)
             fileToCopyTo.writeat(fileContents, 0)
             return True
         else:
