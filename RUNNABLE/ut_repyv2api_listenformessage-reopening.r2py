@@ -1,0 +1,14 @@
+"""
+This unit test checks the listenformessage() API call to make sure it can close
+and then re-open a socket.
+"""
+
+#pragma repy
+
+listenip = "127.0.0.1"
+listenport = 63100
+
+s = listenformessage(listenip, listenport)
+s.close()
+s = listenformessage(listenip, listenport)
+s.close()

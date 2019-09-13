@@ -1,0 +1,67 @@
+"""
+Check that a server's socket.send will eventually block.
+
+This is almost the same test as `connectionsendwilleventuallyblock`,
+but with the client and server sub-tests reversed.
+"""
+#pragma repy
+
+localip = "127.0.0.1"
+localport = 63116
+targetip = "127.0.0.1"
+targetport = 63117
+timeout = 1.0
+
+# We assume this to be an okay socket buffer size. If the buffer is
+# larger than this, the unit test fails!
+SANE_MAX_BUFFER_SIZE = 1024 * 1024
+
+tcpserversocket = listenforconnection(targetip, targetport)
+
+conn = openconnection(targetip, targetport, localip, localport, timeout)
+
+
+(ip, port, serverconn) = tcpserversocket.getconnection()
+
+assert(ip == localip)
+assert(port == localport)
+
+
+# Keep sending until the socket would block (OK, no problem) or the
+# buffer is more than exhausted (BAD).
+totalamountsent = 0
+while True:
+  try:
+    amountsent = serverconn.send('h' * SANE_MAX_BUFFER_SIZE)
+  except SocketWouldBlockError:
+    # This should happen at some point.
+    break
+  totalamountsent = totalamountsent + amountsent
+  assert totalamountsent <= SANE_MAX_BUFFER_SIZE, ("The socket buffered " +
+    "more than the sane maximum buffer size.")
+  break
+
+# Wait a bit so that the sent data is sure to reach the underlying
+# socket buffer. (Otherwise, the test sometimes fails on Linux).
+sleep(5)
+
+# The client should be able to receive that amount of data...
+totalamountrecvd = 0
+
+while totalamountrecvd < totalamountsent:
+  data = conn.recv(totalamountsent-totalamountrecvd)
+  totalamountrecvd = totalamountrecvd + len(data)
+
+assert totalamountrecvd == totalamountsent, ("Received more than the " +
+    str(totalamountsent) + " bytes sent previously!")
+
+# but no more
+try: 
+  conn.recv(1)
+except SocketWouldBlockError:
+  pass
+else:
+  log("Receive buffer should be empty but did not block on recv!\n")
+
+tcpserversocket.close()
+

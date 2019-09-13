@@ -1,0 +1,47 @@
+Questions:
+1. can we assume that programs will always use ABFileopen()?
+2. are we assuming a single threaded environment?
+
+
+The expected behavior of this assignment is a little unclear to me, can a TA please let me know if these are correct assumptions of the behavior of our security layer?
+
+foo = ABopenfile("testfile.txt", True)
+// testfile.txt.a contains "SE"
+// testfile.txt.b contains ""
+foo.writeat("SbarE", 0)
+// testfile.txt.a contains "SbarE"
+// testfile.txt.b contains ""
+read = foo.readAt(None, 0)
+// read = "" because the file isn't closed
+foo.close()
+// since valid, copy to .b
+// testfile.txt.a contains "SbarE"
+// testfile.txt.b contains "SbarE"
+
+foo = ABopenfile("testfile.txt", False)
+// testfile.txt.a contains "SbarE"
+// testfile.txt.b contains "SbarE"
+read = foo.readAt(None, 0)
+// read = "SbarE" 
+foo.writeat("bar", 0)
+// testfile.txt.a contains "bar"
+// testfile.txt.b contains "SbarE"
+read = foo.readAt(None, 0)
+// read = "SbarE" 
+foo.close()
+// since testfile.txt.a is invalid, we discard it i.e:
+// testfile.txt.a contains ""
+// testfile.txt.b contains "SbarE"
+
+foo = ABopenfile("testfile.txt", True)
+// testfile.txt.a contains "SE"
+// testfile.txt.b contains ""
+foo.writeat("", 0)
+// testfile.txt.a contains ""
+// testfile.txt.b contains ""
+read = foo.readAt(None, 0)
+// read = "SE" 
+foo.close()
+// since testfile.txt.a is invalid, we discard it i.e:
+// testfile.txt.a contains ""
+// testfile.txt.b contains ""
