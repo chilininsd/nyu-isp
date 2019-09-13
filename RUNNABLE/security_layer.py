@@ -31,66 +31,77 @@ class ABFile():
         # local (per object) reference to the underlying file
         self.Afn = filename+'.a'
         self.Bfn = filename+'.b'
-        diag("security: init")
 
         # make the files and add 'SE' to the readat file...
         if create:
             self.Afile = openfile(self.Afn,create)
             self.Bfile = openfile(self.Bfn,create)
             self.Afile.writeat('SE',0)
-            diag("security: create")
-
+            self.diag("postcreate")
 
     def writeat(self,data,offset):
+        self.diag("write-before")
         self.Bfile.writeat(data,offset)
-        diag("security: writeat", self, data, offset)
+        self.diag("write-after")
   
     def readat(self,bytes,offset):
-        diag("security: readat", self, bytes, offset)
-        # Read from the A file using the sandbox's readat...
-        return self.Afile.readat(bytes,offset)
+        if self.isValid(self.Afile):
+            contents = self.Afile.readat(bytes, offset)
+            self.diag("security: readat")
+            return contents
+        return ""
 
 #FIXME: need to lock, I think that's the only way to truly prevent these issues.
     def close(self):
-        copied = self.copyFileToFileIfValid(self.Afile, self.Bfile)
+        copied = self.copyFileToFileIfValid(self.Bfile, self.Afile)
         if not copied:
-            self.copyFileToFileIfValid(self.Bfile, self.Afile)
+            self.copyFileToFileIfValid(self.Afile, self.Bfile)
 
         self.Afile.close()
         self.Bfile.close()
-            
-        diag("security: close", self, copied)
 
     def isValid(self, file):
         fileContents = file.readat(None,0)
-        firstChar = fileContents[0]
-        lastChar = fileContents[-1]
-        diag("security: isValid", firstChar, lastChar)
-        return firstChar == 'S' and lastChar == 'E'
+        if fileContents is not None and len(fileContents) > 0:
+            firstChar = fileContents[0]
+            lastChar = fileContents[-1]
+            self.diag("security: isValid", firstChar, lastChar)
+            return firstChar == 'S' and lastChar == 'E'
 
     def copyFileToFileIfValid(self, fileToCopyFrom, fileToCopyTo):
-        diag("checking if file valid")
         if self.isValid(fileToCopyFrom):
-            diag("file is valid")
-            fileContents = fileToCopyFrom.readat(None,0)
+            fileContents = fileToCopyFrom.readat(0,0)
             fileToCopyTo.writeat(fileContents, 0)
             return True
         else:
-            diag("file is invalid")
             return False
 
+    def diag(self, message, *argv):
+        if mycontext.get("debug") == True:
+            gDiag(message, argv)
+            log("\tA file = " + self.Afile.readat(None,0))
+            log("\n")
+            log("\tB file = " + self.Bfile.readat(None,0))
+            log("\n")
+
 def ABopenfile(filename, create):
-    diag("security: abopenfile", filename, create)
     return ABFile(filename,create)
 
-def diag(message, *argv):
-    if mycontext.get("debug") == True:
-        log(message)
-        log("\n")
-        for arg in argv:
-            if arg is not None:
-                log("\t" + str(arg))
-                log("\n")
+# def foo(msg, name):
+#     file = openfile(name, False)
+#     content = file.readAt(0, 0)
+#     gDiag(msg, content)
+#     file.close()
+#     return ""
+
+def gDiag(message, *argv):
+    log(message)
+    log("\n")
+    for arg in argv:
+        if arg is not None:
+            log("\t" + str(arg))
+            log("\n")
+    return ""
 
 
 # The code here sets up type checking and variable hiding for you.  You
