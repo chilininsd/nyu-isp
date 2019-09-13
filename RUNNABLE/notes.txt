@@ -1,6 +1,7 @@
 Questions:
 1. can we assume that programs will always use ABFileopen()?
 2. are we assuming a single threaded environment?
+3. why are private methods forbidden? 
 
 
 The expected behavior of this assignment is a little unclear to me, can a TA please let me know if these are correct assumptions of the behavior of our security layer?
