@@ -15,7 +15,17 @@ assert('SE' == myfile.readat(None,0))
 myfile.writeat("Stest12345E",0)
 assert('SE' == myfile.readat(None,0))
 myfile.close()
-assert(dump("testfile.txt.a") == dump("testfile.txt.b"))
+assert(dump("testfile.txt.a") == dump("testfile.txt.b") == "Stest12345E")
 # locked
 
+myfile = ABopenfile("testfile.txt", False)
+log("opened existing file")
+assert("Stest12345E" == myfile.readat(None, 0))
+myfile.writeat("bar", 0)
+log("wrote to existing file")
+assert("Stest12345E" == myfile.readat(None, 0))
+log("read from exstin")
+myfile.close()
+log("closed existing file")
+assert(dump("testfile.txt.a") == dump("testfile.txt.b") == "Stest12345E")
 

@@ -2,46 +2,48 @@ Questions:
 1. can we assume that programs will always use ABFileopen()? Or do we have to try to handle the case where they use `openfile`?
 2. are we assuming a single threaded environment?
 3. why are private methods forbidden?
+4. can they delete .a and .b from under us?
+5. is there a max file length? when discarding the corrupted file, I need to fully clear the file. 
 
 The expected behavior of this assignment is a little unclear to me, can a TA please let me know if these are correct assumptions of the behavior of our security layer?
 
-foo = ABopenfile("testfile.txt", True)
-// testfile.txt.a contains "SE"
-// testfile.txt.b contains ""
-foo.writeat("SbarE", 0)
-// testfile.txt.a contains "SbarE"
-// testfile.txt.b contains ""
-read = foo.readAt(None, 0)
-// read = "" because the file isn't closed
-foo.close()
-// since valid, copy to .b
-// testfile.txt.a contains "SbarE"
-// testfile.txt.b contains "SbarE"
+myfile = ABopenfile("testfile.txt", True)
+# testfile.txt.a contains "SE"
+# testfile.txt.b contains ""
+myfile.writeat("SbarE", 0)
+# testfile.txt.a contains "SE"
+# testfile.txt.b contains "SbarE"
+read = myfile.readAt(None, 0)
+# read = "SE" because the file isn't closed
+myfile.close()
+# since valid, copy to other file
+# testfile.txt.a contains "SbarE"
+# testfile.txt.b contains "SbarE"
 
-foo = ABopenfile("testfile.txt", False)
-// testfile.txt.a contains "SbarE"
-// testfile.txt.b contains "SbarE"
-read = foo.readAt(None, 0)
-// read = "SbarE" 
-foo.writeat("bar", 0)
-// testfile.txt.a contains "bar"
-// testfile.txt.b contains "SbarE"
-read = foo.readAt(None, 0)
-// read = "SbarE" 
-foo.close()
-// since testfile.txt.a is invalid, we discard it i.e:
-// testfile.txt.a contains "SbarE"
-// testfile.txt.b contains "SbarE"
+myfile = ABopenfile("testfile.txt", False)
+# testfile.txt.a contains "SbarE"
+# testfile.txt.b contains "SbarE"
+read = myfile.readAt(None, 0)
+# read = "SbarE" 
+myfile.writeat("bar", 0)
+# testfile.txt.a contains "SbarE"
+# testfile.txt.b contains "bar"
+read = myfile.readAt(None, 0)
+# read = "SbarE" 
+myfile.close()
+# since testfile.txt.b is invalid, we discard it i.e:
+# testfile.txt.a contains "SbarE"
+# testfile.txt.b contains "SbarE"
 
-foo = ABopenfile("testfile.txt", True)
-// testfile.txt.a contains "SE"
-// testfile.txt.b contains ""
-foo.writeat("", 0)
-// testfile.txt.a contains ""
-// testfile.txt.b contains ""
-read = foo.readAt(None, 0)
-// read = "SE" 
-foo.close()
-// since testfile.txt.a is invalid, we discard it i.e:
-// testfile.txt.a contains ""
-// testfile.txt.b contains ""
+myfile = ABopenfile("testfile.txt", True)
+# testfile.txt.a contains "SE"
+# testfile.txt.b contains ""
+myfile.writeat("", 0)
+# testfile.txt.a contains "SE"
+# testfile.txt.b contains ""
+read = myfile.readAt(None, 0)
+# read = "SE" 
+myfile.close()
+# since testfile.txt.b is invalid, we discard it i.e:
+# testfile.txt.a contains "SE"
+# testfile.txt.b contains "SE"
