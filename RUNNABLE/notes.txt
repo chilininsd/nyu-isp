@@ -1,9 +1,16 @@
 Questions:
-1. can we assume that programs will always use ABFileopen()? Or do we have to try to handle the case where they use `openfile`?
+1. can we assume that programs will always use ABFileopen()? Or do we have to try to handle the case where they use `openfile` on the .a or .b files?
 2. are we assuming a single threaded environment?
 3. why are private methods forbidden?
-4. can they delete .a and .b from under us?
-5. is there a max file length? when discarding the corrupted file, I need to fully clear the file. 
+4. is there an equivalent of static methods?
+5. there doesn't seem to be a way to shrink a file
+    * file.writeat("222")
+    * file.writeat("1")
+    * files contents are "122"
+    * there is no API to clear a file except for deleting it which seems like overkill
+
+in order to handle the delete/modification after close, i'll need to store something in memory
+but i'll also have to handle the case where the reference is garbage collected
 
 The expected behavior of this assignment is a little unclear to me, can a TA please let me know if these are correct assumptions of the behavior of our security layer?
 

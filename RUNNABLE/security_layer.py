@@ -27,41 +27,56 @@ goals:
 class ABFile():
     def __init__(self,filename,create):
         # globals
-        mycontext['debug'] = True   
+        mycontext['debug'] = False
+
+        if mycontext.get('memorycache') is None:
+            mycontext['memorycache'] = {}
+
         # local (per object) reference to the underlying file
         self.Afn = filename+'.a'
         self.Bfn = filename+'.b'
 
         # make the files and add 'SE' to the readat file...
+        existingFiles = listfiles()
         if create:
-            self.Afile = openfile(self.Afn,create)
-            self.Bfile = openfile(self.Bfn,create)
-            self.Afile.writeat('SE',0)
-            self.diag("postcreate")
-        else:
-            files = listfiles()
-            if files.index(self.Afn) > 0:
-                self.Afile = openfile(self.Afn, False)
-            if files.index(self.Bfn) > 0:
-                self.Bfile = openfile(self.Bfn, False)
+            if self.Afn in existingFiles:
+                removefile(self.Afn)
+            self.Afile = openfile(self.Afn,True)
+            mycontext['memorycache'][self.Afn] = ""
 
+            if self.Bfn in existingFiles:
+                removefile(self.Bfn)
+            self.Bfile = openfile(self.Bfn,True)
+
+            self.Afile.writeat('SE',0)
+        else:
+            if self.Afn in existingFiles:
+                self.Afile = openfile(self.Afn, False)
+            else: 
+                self.Afile = openfile(self.Afn, True)
+            if self.Bfn in existingFiles:
+                self.Bfile = openfile(self.Bfn, False)
+            else:
+                self.Bfile = openfile(self.Afn, True)
+            cachedContent = mycontext['memorycache'][self.Afn]
+            self.Afile.writeat(cachedContent,0)
+            self.Bfile.writeat(cachedContent,0)
 
     def writeat(self,data,offset):
-        self.diag("write-before")
         self.Bfile.writeat(data,offset)
-        self.diag("write-after")
   
     def readat(self,bytes,offset):
         if self.isValid(self.Afile):
-            contents = self.Afile.readat(bytes, offset)
-            self.diag("security: readat")
-            return contents
+            return self.Afile.readat(bytes, offset)
         return ""
 
-#FIXME: need to lock, I think that's the only way to truly prevent these issues.
     def close(self):
         copied = self.copyFileToFileIfValid(self.Bfile, self.Afile)
-        if not copied:
+        if copied:
+            # if it was a valid copy, store the contents in memory
+            contents = self.Afile.readat(None, 0)
+            mycontext['memorycache'][self.Afn] = contents
+        else:
             self.copyFileToFileIfValid(self.Afile, self.Bfile)
 
         self.Afile.close()
@@ -72,7 +87,6 @@ class ABFile():
         if fileContents is not None and len(fileContents) > 0:
             firstChar = fileContents[0]
             lastChar = fileContents[-1]
-            self.diag("security: isValid", firstChar, lastChar)
             return firstChar == 'S' and lastChar == 'E'
 
     def copyFileToFileIfValid(self, fileToCopyFrom, fileToCopyTo):
