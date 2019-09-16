@@ -63,7 +63,6 @@ backupFile = openfile("testfile.txt.a", False)
 backupFile.writeat("SmodifiedtwiceE",0)
 backupFile.close()
 myfile = ABopenfile("testfile.txt", False)
-# this is a bug: 
-assert("SmodifiedE" == myfile.readat(len("SmodifiedE"), 0))
+assert("SmodifiedE" == myfile.readat(None, 0))
 myfile.close()
 assert(dump("testfile.txt.a") == dump("testfile.txt.b") == "SmodifiedE")

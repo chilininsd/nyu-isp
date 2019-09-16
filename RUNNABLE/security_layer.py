@@ -51,13 +51,13 @@ class ABFile():
             self.Afile.writeat('SE',0)
         else:
             if self.Afn in existingFiles:
-                self.Afile = openfile(self.Afn, False)
-            else: 
-                self.Afile = openfile(self.Afn, True)
+                removefile(self.Afn)
             if self.Bfn in existingFiles:
-                self.Bfile = openfile(self.Bfn, False)
-            else:
-                self.Bfile = openfile(self.Afn, True)
+                removefile(self.Bfn)
+
+            self.Afile = openfile(self.Afn, True)
+            self.Bfile = openfile(self.Bfn, True)
+            
             cachedContent = mycontext['memorycache'][self.Afn]
             self.Afile.writeat(cachedContent,0)
             self.Bfile.writeat(cachedContent,0)
