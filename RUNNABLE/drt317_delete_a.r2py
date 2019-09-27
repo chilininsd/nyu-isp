@@ -12,5 +12,7 @@ try:
   assert("SdeletedE" == myfile.readat(None, 0))
   myfile.close()
 except:
-  myfile.close()
-  log("Exception in .a deleted flow")
+  try:
+    myfile.close()
+  finally:
+    log("Exception in .a deleted flow")

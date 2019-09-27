@@ -29,5 +29,8 @@ try:
   assert(contents == "Stest12345E")
   myfile.close()
 except:
-  log("Exception in append flow\n")
-  myfile.close()
+  try:
+    myfile.close()
+  finally:
+    log("Exception in append flow\n")
+  

@@ -14,5 +14,7 @@ try:
   assert('Stest12345E' == myfile.readat(None,0))
   myfile.close()
 except:
-  myfile.close()
-  log("Exception in create flow\n")
+  try:
+    myfile.close()
+  finally:
+    log("Exception in create flow\n")
