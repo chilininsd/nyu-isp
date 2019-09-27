@@ -72,12 +72,11 @@ class ABFile():
 
     def close(self):
         copied = self.copyFileToFileIfValid(self.Bfile, self.Afile)
-        if copied:
-            # if it was a valid copy, store the contents in memory
-            contents = self.Afile.readat(None, 0)
-            mycontext['memorycache'][self.Afn] = contents
-        else:
+        if not copied:
             self.copyFileToFileIfValid(self.Afile, self.Bfile)
+            
+        contents = self.Afile.readat(None, 0)
+        mycontext['memorycache'][self.Afn] = contents
 
         self.Afile.close()
         self.Bfile.close()
