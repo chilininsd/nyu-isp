@@ -32,6 +32,10 @@ class ABFile():
         if mycontext.get('memorycache') is None:
             mycontext['memorycache'] = {}
 
+        if mycontext.get('lock') is None:
+            mycontext['lock'] = createlock()
+        mycontext['lock'].acquire(True)
+
         # local (per object) reference to the underlying file
         self.Afn = filename+'.a'
         self.Bfn = filename+'.b'
@@ -61,16 +65,24 @@ class ABFile():
             cachedContent = mycontext['memorycache'][self.Afn]
             self.Afile.writeat(cachedContent,0)
             self.Bfile.writeat(cachedContent,0)
+        
+        mycontext['lock'].release()
 
     def writeat(self,data,offset):
+        mycontext['lock'].acquire(True)
         self.Bfile.writeat(data,offset)
+        mycontext['lock'].release()
   
     def readat(self,bytes,offset):
+        mycontext['lock'].acquire(True)
+        toReturn = ""
         if self.isValid(self.Afile):
-            return self.Afile.readat(bytes, offset)
-        return ""
+            toReturn = self.Afile.readat(bytes, offset)
+        mycontext['lock'].release()
+        return toReturn
 
     def close(self):
+        mycontext['lock'].acquire(True)
         copied = self.copyFileToFileIfValid(self.Bfile, self.Afile)
         if not copied:
             self.copyFileToFileIfValid(self.Afile, self.Bfile)
@@ -80,6 +92,7 @@ class ABFile():
 
         self.Afile.close()
         self.Bfile.close()
+        mycontext['lock'].release()
 
     def isValid(self, file):
         fileContents = file.readat(None,0)
