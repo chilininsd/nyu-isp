@@ -31,10 +31,9 @@ class ABFile():
 
         if mycontext.get('memorycache') is None:
             mycontext['memorycache'] = {}
-
+        
         if mycontext.get('lock') is None:
             mycontext['lock'] = createlock()
-        mycontext['lock'].acquire(True)
 
         # local (per object) reference to the underlying file
         self.Afn = filename+'.a'
@@ -65,14 +64,15 @@ class ABFile():
             cachedContent = mycontext['memorycache'][self.Afn]
             self.Afile.writeat(cachedContent,0)
             self.Bfile.writeat(cachedContent,0)
-        
-        mycontext['lock'].release()
 
     def writeat(self,data,offset):
         mycontext['lock'].acquire(True)
-        self.Bfile.writeat(data,offset)
+        try:
+            self.Bfile.writeat(data,offset)
+        except:
+            pass
         mycontext['lock'].release()
-  
+
     def readat(self,bytes,offset):
         mycontext['lock'].acquire(True)
         toReturn = ""
