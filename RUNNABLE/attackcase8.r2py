@@ -1,0 +1,65 @@
+def dobadstuff():
+
+    try:
+        # try to lock the file in another thread
+        myfile1 = ABopenfile("filename", True)
+
+        mythread = getthreadname()
+        log("thread " + mythread + " SUCCESS!\n")
+        # try to write different but valid data to the file
+        myfile1.writeat("Sahahah-"+ mythread+ "-ahahahaE", 0)
+        myfile1.close()
+    except Exception as ex:
+        mythread = getthreadname()
+        # we did not succeed better luck next time
+        # log(" thread " + mythread + " FAILED\n")
+
+if "filename.a" in listfiles():
+    removefile("filename.a")
+if "filename.b" in listfiles():
+    removefile("filename.b")
+
+# Open File Function Call
+myfile = ABopenfile("filename", True)  # Create an AB file
+
+# put some valid data in the file.
+myfile.writeat("SthreadsE", 0)
+
+threadnum=10
+
+
+try:
+    for i in range(threadnum):
+        createthread(dobadstuff)
+except:
+    log("Couldn't create thread\n")
+
+
+try:
+    # wait for the threads to start
+    # Close the file
+    myfile.close()
+except:
+        log("CLOSE FAILED!!! - SUCCESS\n")
+
+
+# wait for all the threads to finis
+sleep(3)
+
+# now lets see what we got
+try:
+    # do it again, and write a longer, invalid string
+    myfile = ABopenfile("filename", False)
+    # our end result should be the original string
+    assert ('SthreadsE' == myfile.readat(None, 0))
+    myfile.close()
+except:
+    myfile.close()
+    # Error Handle or Failure Condition
+    log("Corrupted with threading!")
+
+
+
+
+
+

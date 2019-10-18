@@ -29,29 +29,34 @@ class ABFile():
         # globals
         mycontext['debug'] = False
 
+        # local (per object) reference to the underlying file
+        self.Afn = filename+'.a'
+        self.Bfn = filename+'.b'
+
         if mycontext.get('memorycache') is None:
             mycontext['memorycache'] = {}
+            mycontext['memorycache'][self.Afn + "open"] = 0
         
         if mycontext.get('lock') is None:
             mycontext['lock'] = createlock()
 
-        # local (per object) reference to the underlying file
-        self.Afn = filename+'.a'
-        self.Bfn = filename+'.b'
+        self.incrementRef(self.Afn)
 
         # make the files and add 'SE' to the readat file...
         existingFiles = listfiles()
         if create:
             if self.Afn in existingFiles:
-                removefile(self.Afn)
-            self.Afile = openfile(self.Afn,True)
-            mycontext['memorycache'][self.Afn] = ""
-
+                self.Afile = openfile(self.Afn,False)
+            else:
+                self.Afile = openfile(self.Afn,True)
+                mycontext['memorycache'][self.Afn] = ""
+                self.Afile.writeat('SE',0)
+            
             if self.Bfn in existingFiles:
-                removefile(self.Bfn)
-            self.Bfile = openfile(self.Bfn,True)
+                self.Bfile = openfile(self.Bfn,False)
+            else:
+                self.Bfile = openfile(self.Bfn,True)
 
-            self.Afile.writeat('SE',0)
         else:
             if self.Afn in existingFiles:
                 removefile(self.Afn)
@@ -65,12 +70,28 @@ class ABFile():
             self.Afile.writeat(cachedContent,0)
             self.Bfile.writeat(cachedContent,0)
 
+    def incrementRef(self,file):
+        count = self.getref(file) + 1
+        mycontext['memorycache'][str(file) + "open"] = count 
+
+    def decrementRef(self,file):
+        count = self.getref(file) - 1
+        mycontext['memorycache'][str(file) + "open"] = count
+
+    def getref(self, file):
+        count = mycontext['memorycache'][str(file) + "open"]
+        if count is not None:
+            return count
+        else:
+            return 0
+
     def writeat(self,data,offset):
         mycontext['lock'].acquire(True)
-        try:
-            self.Bfile.writeat(data,offset)
-        except:
-            pass
+        if self.getref(self.Afn) == 1:
+            try:
+                self.Bfile.writeat(data,offset)
+            except:
+                pass
         mycontext['lock'].release()
 
     def readat(self,bytes,offset):
@@ -90,6 +111,7 @@ class ABFile():
         contents = self.Afile.readat(None, 0)
         mycontext['memorycache'][self.Afn] = contents
 
+        self.decrementRef(self.Afn)
         self.Afile.close()
         self.Bfile.close()
         mycontext['lock'].release()
