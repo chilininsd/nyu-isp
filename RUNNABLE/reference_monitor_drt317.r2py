@@ -35,6 +35,8 @@ class ABFile():
 
         if mycontext.get('memorycache') is None:
             mycontext['memorycache'] = {}
+
+        if mycontext.get('memorycache').get(self.Afn + "open") is None:
             mycontext['memorycache'][self.Afn + "open"] = 0
         
         if mycontext.get('lock') is None:
