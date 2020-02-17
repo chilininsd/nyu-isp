@@ -1,0 +1,1 @@
+FOR %r IN (reference_monitor_*) DO @(ECHO %r under test & FOR %a IN (attack*) DO @python repy.py restrictions.default encasementlib.r2py %r %a)

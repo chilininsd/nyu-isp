@@ -1,0 +1,61 @@
+"""
+This unit test checks the behavior of a RepyV2 file object when
+its `close` method is called concurrently with `readat`/`writeat`.
+(The readat/writeat should finish even if the file is closed in
+another thread.)
+
+NOTE: We use a special restrictions file with specific `fileread`
+    and `filewrite` values! YMMV nevertheless, as there are no
+    guarantees as to when the `close` thread starts up.
+"""
+
+#pragma repy restrictions.file10k
+
+JUNK_FILE = "test.write.junk.data"
+
+# Write/read back this many bytes
+BYTECOUNT = 50000
+
+def closeit():
+  sleep(0.1)
+  junkh.close()
+
+# Get a handle to a junk file
+junkh = openfile(JUNK_FILE, True)
+
+# Try to write a lot of data, 50K bytes should take 5 seconds
+data = "." * BYTECOUNT
+
+createthread(closeit)
+junkh.writeat(data, 0)
+
+# The file should be closed now
+try:
+  junkh.readat(15, 0)
+  log("Read worked after close!",'\n')
+except FileClosedError:
+  pass
+
+
+# Open a handle to read now
+junkh = openfile(JUNK_FILE, False)
+
+# Try to read back all 50K bytes, should take 5 seconds
+createthread(closeit)
+data = junkh.readat(BYTECOUNT, 0)
+
+# All the data should be read
+if len(data) != BYTECOUNT:
+  log("Read less data than expected!",'\n')
+
+# It should be closed now
+try:
+  junkh.readat(15, 0)
+  log("Read worked after close! (2)",'\n')
+except FileClosedError:
+  pass
+
+
+# Remove the file
+removefile(JUNK_FILE)
+

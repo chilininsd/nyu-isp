@@ -1,0 +1,49 @@
+# test reference monitor for normal operation
+# Functionality test simply creates a file, verifies valid data in valid file and closes.
+
+
+
+
+if "testfile.a" in listfiles():
+    removefile("testfile.a")
+if "testfile.b" in listfiles():
+    removefile("testfile.b")
+
+
+
+try:
+    file = ABopenfile("testfile", True)
+except:
+    log("ACCURACY COMPROMISED: Monitor failed to allow normal file creation.\n")
+try:
+    assert("SE" == file.readat(None, 0))
+except:
+    log("SECURITY COMPROMISED: Monitor failed to write valid data to blank file\n")
+try:
+    file.close()
+except:
+    log("ACCURACY COMPROMISED: Monitor failed to perform close function\n")
+
+try:
+    file = ABopenfile('testfile', False)
+    file.close()
+except:
+    log('ACCURACY COMPROMISED: Monitor has no ability to reopen a file')
+
+
+
+# Because a large number of monitors fail to allow reopening a file to check the contents, I will use
+# openfile() and read() to check the contents of the files written to the disk
+
+if "testfile.a" in listfiles():
+    file = openfile("testfile.a", False)
+    try:
+        assert("SE" == file.readat(None, 0))
+    except:
+	log("SECURITY COMPROMISED: Monitor failed to write valid data to blank file\n")
+if "testfile.b" in listfiles():
+    file = openfile("testfile.b", False)
+    try:
+        assert("SE" == file.readat(None, 0))
+    except:
+	log("SECURITY COMPROMISED: Monitor failed to write valid data to blank file\n")

@@ -1,0 +1,66 @@
+"""
+Check that closing a listening (or "server") socket doesn't
+impact existing connected sockets which that server socket returned
+earlier via `getconnection`.
+
+We do this by setting up a listening socket, initiating and
+accepting an incoming connection, then closing the listening
+socket, and lastly transferring data across the still-established
+connection. The server socket's `close` must not affect the
+connection.
+"""
+#pragma repy
+
+localip = "127.0.0.1"
+localport = 63122
+targetip = "127.0.0.1"
+targetport = 63123
+timeout = 1.0
+
+
+tcpserversocket = listenforconnection(targetip, targetport)
+
+conn = openconnection(targetip, targetport, localip, localport, timeout)
+
+
+(ip, port, serverconn) = tcpserversocket.getconnection()
+
+assert(ip == localip)
+assert(port == localport)
+
+
+# Okay, I no longer need the server socket
+tcpserversocket.close()
+
+
+# now let's test the client socket...
+
+MAXSENDSIZE = 1024*1024
+
+# Send until the socket would block or the full message has been sent
+totalamountsent = 0
+while totalamountsent < MAXSENDSIZE:
+  try:
+    amountsent = conn.send('h'*(MAXSENDSIZE-totalamountsent))
+  except SocketWouldBlockError:
+    # This should happen at some point.
+    break
+  
+  totalamountsent = totalamountsent + amountsent
+
+
+totalamountrecvd = 0
+
+while totalamountrecvd < totalamountsent:
+  
+  # now the server should be able to recv that amount of data...
+  data = serverconn.recv(totalamountsent-totalamountrecvd)
+
+  totalamountrecvd = totalamountrecvd + len(data)
+
+
+assert totalamountrecvd == totalamountsent
+
+
+conn.close()
+serverconn.close()
